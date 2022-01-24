@@ -39,11 +39,10 @@ class DispatchGetBotUpdates extends Command
      */
     public function handle()
     {
-        GetBotUpdates::dispatch();
-        GetBotUpdates::dispatch()->delay(10);
-        GetBotUpdates::dispatch()->delay(20);
-        GetBotUpdates::dispatch()->delay(30);
-        GetBotUpdates::dispatch()->delay(40);
-        GetBotUpdates::dispatch()->delay(50);
+        dispatch(new GetBotUpdates())->delay(10);
+        dispatch(new GetBotUpdates())->delay(20);
+        dispatch(new GetBotUpdates())->delay(30);
+        dispatch(new GetBotUpdates())->delay(40);
+        dispatch(new GetBotUpdates())->delay(50);
     }
 }
