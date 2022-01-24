@@ -37,7 +37,7 @@ class DispatchGetBotUpdates extends Command
      */
     public function handle()
     {
-   git      dispatch(new \App\Jobs\GetBotUpdates());
+        dispatch(new \App\Jobs\GetBotUpdates());
         dispatch(new \App\Jobs\GetBotUpdates())->delay(10);
         dispatch(new \App\Jobs\GetBotUpdates())->delay(20);
         dispatch(new \App\Jobs\GetBotUpdates())->delay(30);
