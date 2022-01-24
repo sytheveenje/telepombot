@@ -1,17 +1,23 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Jobs;
 
 use App\Models\Check;
 use App\Models\Participant;
 use App\Models\Update;
 use Carbon\Carbon;
-use Illuminate\Console\Command;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Arr;
 use Telegram\Bot\Api;
 
-class GetBotUpdates extends Command
+class GetBotUpdates implements ShouldQueue
 {
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     const ENTER = "ikdoemee";
     const QUIT = "stophouop";
@@ -19,39 +25,25 @@ class GetBotUpdates extends Command
     const CHECKS = "checks";
 
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'bot:updates';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Get bot updates';
-    private Api $telegram;
-
-    /**
-     * Create a new command instance.
+     * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Api $telegram)
+    public function __construct()
     {
-        parent::__construct();
-        $this->telegram = $telegram;
+
     }
 
     /**
-     * Execute the console command.
+     * Execute the job.
      *
-     * @return int
+     * @return void
      */
     public function handle()
     {
-        $updates = $this->telegram->getUpdates();
+        $telegram = new Api(env('TELEGRAM_BOT_TOKEN'));
+        $updates = $telegram->getUpdates();
+
         foreach ($updates as $update) {
             $updateNeedsProcessing = Update::where('update_id', $update['update_id'])->first();
 
@@ -67,7 +59,7 @@ class GetBotUpdates extends Command
                     if (Arr::exists($update['message']['from'], 'username')) {
                         $username = $update['message']['from']['username'];
                     } else {
-                        $username = $update['message']['from']['first_name'] . ' ' . $update['message']['from']['last_name'];
+                        $username = $update['message']['from']['first_name'];
                     }
 
                     if ($update['message']['text'] === "/" . self::ENTER) {
@@ -76,17 +68,17 @@ class GetBotUpdates extends Command
                             'telegram_id' => $update['message']['from']['id']
                         ], [
                             'first_name' => $update['message']['from']['first_name'],
-                            'last_name' => $update['message']['from']['last_name'],
+                            'last_name' => Arr::exists($update['message']['from'], 'last_name') ? $update['message']['from']['last_name'] : null,
                             'username' => $username
                         ]);
 
                         if ($participant->wasRecentlyCreated === true) {
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                     'text' => "Je doet nu mee aan de challenge, zet hem op!"]
                             );
                         } else {
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                     'text' => "Je was al opgegeven gekkie!"]
                             );
@@ -101,12 +93,12 @@ class GetBotUpdates extends Command
                         if($participant) {
                             $participant->delete();
 
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                 'text' => "Je doet nu niet meer mee, en al je stats zijn gewist"]
                             );
                         } else {
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                 'text' => "Je doet nog niet mee mietje!"]
                             );
@@ -124,7 +116,7 @@ class GetBotUpdates extends Command
 
                             if($check)
                             {
-                                $this->telegram->sendMessage(
+                                $telegram->sendMessage(
                                     ['chat_id' => $update['message']['chat']['id'],
                                     'text' => "Je hebt vandaag al koud gedouched, ben je dat vergeten?"]
                                 );
@@ -134,13 +126,13 @@ class GetBotUpdates extends Command
                                     'checked_at' => Carbon::now()
                                 ]);
 
-                                $this->telegram->sendMessage(
+                                $telegram->sendMessage(
                                     ['chat_id' => $update['message']['chat']['id'],
                                     'text' => "Goed bezig! Staat genoteerd!"]
                                 );
                             }
                         } else {
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                 'text' => "Je doet nog niet mee, dus je kunt ook niet inchecken, typ /ikdoemee om mee te doen"]
                             );
@@ -154,12 +146,12 @@ class GetBotUpdates extends Command
 
                             $checks = $participant->checks()->count();
 
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                 'text' => "Je hebt nu ". $checks ." dag(en) koud afgedouched!"]
                             );
                         } else {
-                            $this->telegram->sendMessage(
+                            $telegram->sendMessage(
                                 ['chat_id' => $update['message']['chat']['id'],
                                 'text' => "Je doet nog niet mee, dus ik kan je dit niet vertellen"]
                             );
@@ -170,7 +162,7 @@ class GetBotUpdates extends Command
                     //
                 } else {
 
-                    $this->telegram->sendMessage(
+                    $telegram->sendMessage(
                         ['chat_id' => $update['message']['chat']['id'],
                             'text' => "Sorry, dit command ken ik niet"]
                     );
