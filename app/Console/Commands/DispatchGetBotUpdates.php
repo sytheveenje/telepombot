@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
+use App\Jobs\GetBotUpdates;
+
 class DispatchGetBotUpdates extends Command
 {
     /**
@@ -37,11 +39,11 @@ class DispatchGetBotUpdates extends Command
      */
     public function handle()
     {
-        dispatch(new \App\Jobs\GetBotUpdates());
-        dispatch(new \App\Jobs\GetBotUpdates())->delay(10);
-        dispatch(new \App\Jobs\GetBotUpdates())->delay(20);
-        dispatch(new \App\Jobs\GetBotUpdates())->delay(30);
-        dispatch(new \App\Jobs\GetBotUpdates())->delay(40);
-        dispatch(new \App\Jobs\GetBotUpdates())->delay(50);
+        GetBotUpdates::dispatch();
+        GetBotUpdates::dispatch()->delay(10);
+        GetBotUpdates::dispatch()->delay(20);
+        GetBotUpdates::dispatch()->delay(30);
+        GetBotUpdates::dispatch()->delay(40);
+        GetBotUpdates::dispatch()->delay(50);
     }
 }
