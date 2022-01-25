@@ -162,10 +162,10 @@ class GetBotUpdates implements ShouldQueue
                     //
                 } else {
 
-                    $telegram->sendMessage(
-                        ['chat_id' => $update['message']['chat']['id'],
-                            'text' => "Sorry, dit command ken ik niet"]
-                    );
+//                    $telegram->sendMessage(
+//                        ['chat_id' => $update['message']['chat']['id'],
+//                            'text' => "Sorry, dit command ken ik niet"]
+//                    );
 
                 }
             }
