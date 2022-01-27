@@ -157,16 +157,6 @@ class GetBotUpdates implements ShouldQueue
                             );
                         }
                     }
-
-                } elseif ($update && Arr::exists($update, 'edited_message')) {
-                    //
-                } else {
-
-//                    $telegram->sendMessage(
-//                        ['chat_id' => $update['message']['chat']['id'],
-//                            'text' => "Sorry, dit command ken ik niet"]
-//                    );
-
                 }
             }
         }
